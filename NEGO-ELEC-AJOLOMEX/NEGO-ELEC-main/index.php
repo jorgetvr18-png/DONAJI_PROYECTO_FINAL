@@ -1,0 +1,7 @@
+<?php require 'inc.php'; head('Inicio');
+$ci=['🧵','🏺','📿','🦎','☕','🌿'];$new=rows('SELECT p.*,a.nombre an,a.estado ae FROM productos p JOIN artesanos a ON a.id=p.artesano_id WHERE p.activo=1 ORDER BY p.id DESC LIMIT 4');?>
+<div class="hero"><div><span class="tag">Hecho a mano en México</span><h1>El arte de nuestros artesanos, <span style="color:var(--pink)">directo a tu casa</span></h1><p class="mut">Conectamos a artesanos y creadores mexicanos con personas que valoran el trabajo hecho a mano: textiles, cerámica, joyería, alebrijes, productos del campo y cosmética natural.</p><a class="btn" href="catalogo.php">Explorar catálogo</a> <a class="btn o" href="contacto.php">Soy artesano, quiero vender</a></div><div style="text-align:center;font-size:150px">🦎</div></div>
+<h2 style="margin-top:50px">Categorías</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"><?php foreach(CATS as $i=>$c)echo '<a class="card" style="text-align:center;font-weight:600;font-size:15px" href="catalogo.php?c='.$i.'"><div style="font-size:34px">'.$ci[$i].'</div>'.e($c).'</a>';?></div>
+<h2 style="margin-top:40px">Recién llegados</h2><div class="grid"><?php foreach($new as $p)echo pcard($p);?></div>
+<div class="card" style="background:var(--beige);margin-top:40px"><div class="two"><div>🔒<h3>Pago seguro</h3>Pagas con tarjeta en Stripe; tus datos nunca pasan por nuestros servidores.</div><div>📦<h3>Seguimiento</h3>Recibes tu folio y comprobante al pagar; consulta el estado en «Mis pedidos».</div></div></div>
+<?php foot();

@@ -1,0 +1,20 @@
+<?php require 'inc.php'; $u=need(['admin']);chk();
+if($_SERVER['REQUEST_METHOD']==='POST'){
+ if(isset($_POST['est'])&&isset(ETQ[$_POST['est']]))q('UPDATE ordenes SET estado=? WHERE id=?','si',$_POST['est'],(int)$_POST['oid']);
+ if(isset($_POST['rol'])&&in_array($_POST['rol'],['cliente','artesano','admin'])&&(int)$_POST['uid']!=$u['id']){$x=(int)$_POST['uid'];q('UPDATE usuarios SET rol=? WHERE id=?','si',$_POST['rol'],$x);
+  if($_POST['rol']=='artesano'&&!row('SELECT id FROM artesanos WHERE usuario_id=?','i',$x)){$n=row('SELECT nombre FROM usuarios WHERE id=?','i',$x)['nombre'];q("INSERT INTO artesanos(nombre,estado,usuario_id) VALUES(?,'México',?)",'si','Taller de '.$n,$x);}}
+ go('admin.php?t='.($_GET['t']??'r'));}
+$t=$_GET['t']??'r';head('Administración');?><small style="color:var(--teal)">ADMINISTRACIÓN</small><h1>AJOLOMEX</h1>
+<div><?php foreach(['r'=>'Resumen','p'=>'Pedidos','u'=>'Usuarios','m'=>'Mensajes'] as $k=>$n)echo '<a class="chip '.($t==$k?'on':'').'" href="admin.php?t='.$k.'">'.$n.'</a>';?></div>
+<?php if($t=='r'){$v=row("SELECT COALESCE(SUM(total),0) s,COUNT(*) c FROM ordenes WHERE estado<>'pendiente'");$pe=row("SELECT COUNT(*) c FROM ordenes WHERE estado='pendiente' AND folio IS NOT NULL")['c'];
+ $K=['Ventas pagadas'=>money($v['s']),'Pedidos pagados'=>$v['c'],'Pendientes de pago'=>$pe,'Usuarios'=>row('SELECT COUNT(*) c FROM usuarios')['c'],'Artesanos'=>row('SELECT COUNT(*) c FROM artesanos')['c'],'Productos'=>row('SELECT COUNT(*) c FROM productos')['c']];
+ echo '<div class="grid">';foreach($K as $a=>$b)echo '<div class="card">'.$a.'<div class="kp">'.$b.'</div></div>';echo '</div><div class="two" style="margin-top:18px"><div class="card"><h3>Más vendidos</h3>';
+ foreach(rows("SELECT d.nombre,SUM(d.cantidad) n FROM detalles_orden d JOIN ordenes o ON o.id=d.orden_id WHERE o.estado<>'pendiente' GROUP BY d.nombre ORDER BY n DESC LIMIT 5") as $i=>$r)echo ($i+1).'. '.e($r['nombre']).' — '.$r['n'].' pzs<br>';
+ echo '</div><div class="card"><h3>Inventario bajo (≤3)</h3>';foreach(rows('SELECT p.nombre,p.stock,a.nombre an FROM productos p JOIN artesanos a ON a.id=p.artesano_id WHERE p.stock<=3') as $r)echo e($r['nombre']).' ('.e($r['an']).') — '.$r['stock'].' pzs<br>';echo '</div></div>';}
+if($t=='p'){echo '<div class="card sc"><table><tr><th>Folio</th><th>Fecha</th><th>Cliente</th><th>Total</th><th>Estado</th></tr>';foreach(rows('SELECT o.*,u.email FROM ordenes o JOIN usuarios u ON u.id=o.usuario_id WHERE o.folio IS NOT NULL ORDER BY o.id DESC') as $o){
+ echo '<tr><td><a href="pedido.php?folio='.e($o['folio']).'">'.e($o['folio']).'</a></td><td>'.e($o['fecha']).'</td><td>'.e($o['envio_nombre']).'<br><small class="mut">'.e($o['email']).'</small></td><td>'.money($o['total']).'</td><td><form method="post" style="display:flex;gap:6px">'.field().'<input type="hidden" name="oid" value="'.$o['id'].'"><select name="est">';
+ foreach(ETQ as $k=>$n)echo '<option value="'.$k.'" '.($k==$o['estado']?'selected':'').'>'.$n.'</option>';echo '</select><button class="btn s">OK</button></form></td></tr>';}echo '</table></div>';}
+if($t=='u'){echo '<div class="card sc"><table><tr><th>Usuario</th><th>Alta</th><th>Rol</th></tr>';foreach(rows('SELECT * FROM usuarios ORDER BY id') as $x){echo '<tr><td>'.e($x['nombre']).'<br><small class="mut">'.e($x['email']).'</small></td><td>'.e($x['creado']).'</td><td>';
+ if($x['id']==$u['id'])echo 'admin (tú)';else{echo '<form method="post" style="display:flex;gap:6px">'.field().'<input type="hidden" name="uid" value="'.$x['id'].'"><select name="rol">';foreach(['cliente','artesano','admin'] as $r)echo '<option '.($r==$x['rol']?'selected':'').'>'.$r.'</option>';echo '</select><button class="btn s">Guardar</button></form>';}echo '</td></tr>';}echo '</table></div>';}
+if($t=='m'){echo '<div class="card">';$M=rows('SELECT * FROM mensajes ORDER BY id DESC');if(!$M)echo '<p class="mut">No hay mensajes de contacto.</p>';foreach($M as $m)echo '<div class="msg"><b>'.e($m['nombre']).'</b> ('.e($m['email']).') · '.e($m['asunto']).'<br>'.nl2br(e($m['mensaje'])).'</div>';echo '</div>';}
+foot();

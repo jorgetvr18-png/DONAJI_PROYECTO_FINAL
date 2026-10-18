@@ -1,0 +1,6 @@
+<?php require 'inc.php'; chk();$ok=$err='';
+if($_SERVER['REQUEST_METHOD']==='POST'){$n=trim($_POST['n']);$m=trim($_POST['m']);$em=trim($_POST['e']);if(!$n||!$m||!filter_var($em,FILTER_VALIDATE_EMAIL))$err='Nombre, correo válido y mensaje son obligatorios.';else{q('INSERT INTO mensajes(nombre,email,telefono,asunto,mensaje) VALUES(?,?,?,?,?)','sssss',$n,$em,$_POST['t2'],$_POST['a'],$m);$ok='Mensaje enviado. Te responderemos al correo que dejaste.';}}
+head('Contacto');?><h1>Contacto</h1><p class="mut">¿Dudas sobre un producto, un pedido o quieres vender con nosotros? Escríbenos.</p>
+<form method="post" class="card" style="max-width:720px"><?=field()?><?=$ok?"<div class='msg'>$ok</div>":''?><?=$err?"<div class='msg err'>$err</div>":''?>
+<div class="row"><div><label>Nombre</label><input name="n"></div><div><label>Correo</label><input name="e" type="email"></div></div><div class="row"><div><label>Teléfono (opcional)</label><input name="t2"></div><div><label>Asunto</label><select name="a"><option>Duda sobre un producto</option><option>Duda sobre un pedido</option><option>Quiero vender</option></select></div></div>
+<label>Mensaje</label><textarea name="m" rows="5"></textarea><br><br><button class="btn">Enviar mensaje</button></form><?php foot();
